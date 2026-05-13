@@ -421,8 +421,8 @@ export default function Room() {
 
   const handleFeedScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.target
-    // Show button if we are scrolled up more than 100px from bottom
-    const isScrolledUp = scrollHeight - scrollTop - clientHeight > 100
+    // Show button if we are scrolled up more than 20px from bottom
+    const isScrolledUp = scrollHeight - Math.ceil(scrollTop) - clientHeight > 20
     setShowScrollButton(isScrolledUp)
   }
 

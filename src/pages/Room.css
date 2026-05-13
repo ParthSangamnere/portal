@@ -806,6 +806,12 @@
     padding-bottom: max(10px, env(safe-area-inset-bottom));
   }
 
+  .scroll-bottom-btn {
+    bottom: calc(75px + env(safe-area-inset-bottom));
+    right: 12px;
+    z-index: 100;
+  }
+
   .clip-actions {
     opacity: 1;
   }
