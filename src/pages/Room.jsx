@@ -200,6 +200,21 @@ export default function Room() {
   const [showClearConfirm, setShowClearConfirm] = useState(false)
   const [socketId, setSocketId] = useState(null)
 
+  // ─── Lock Body Scroll ───
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    document.body.style.position = 'fixed'
+    document.body.style.width = '100%'
+    document.body.style.height = '100%'
+    
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.width = ''
+      document.body.style.height = ''
+    }
+  }, [])
+
   const device = useRef(detectDevice())
   const roomUrl = `${window.location.origin}/room/${roomCode}`
 
@@ -421,10 +436,8 @@ export default function Room() {
 
   const handleFeedScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.target
-    // Distance from bottom of scroll container
-    const distanceFromBottom = scrollHeight - scrollTop - clientHeight
-    // Show button if we are scrolled up more than 5px from bottom
-    setShowScrollButton(distanceFromBottom > 5)
+    // Show button if we are scrolled up more than 50px from bottom
+    setShowScrollButton(scrollHeight - scrollTop - clientHeight > 50)
   }
 
   // Auto-scroll on new items
