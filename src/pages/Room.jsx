@@ -9,7 +9,7 @@ import {
   Link as LinkIcon, FileText, Lock, Eye, EyeOff,
   Image as ImageIcon, Film, Music, FileArchive, File,
   Code, BookOpen, MoreVertical, X, Clipboard,
-  PinOff, Users, Eraser
+  PinOff, Users, Eraser, ArrowDown
 } from 'lucide-react'
 import {
   detectDevice, detectContentType, formatFileSize,
@@ -184,11 +184,13 @@ export default function Room() {
   const navigate = useNavigate()
   const socketRef = useRef(null)
   const feedRef = useRef(null)
+  const listEndRef = useRef(null)
   const fileInputRef = useRef(null)
   const textareaRef = useRef(null)
 
   const [items, setItems] = useState([])
   const [devices, setDevices] = useState([])
+  const [showScrollButton, setShowScrollButton] = useState(false)
   const [connected, setConnected] = useState(false)
   const [connecting, setConnecting] = useState(true)
   const [text, setText] = useState('')
@@ -412,6 +414,29 @@ export default function Room() {
     }
   }
 
+  // ─── Scrolling Logic ───
+  const scrollToBottom = useCallback(() => {
+    listEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [])
+
+  const handleFeedScroll = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target
+    // Show button if we are scrolled up more than 100px from bottom
+    const isScrolledUp = scrollHeight - scrollTop - clientHeight > 100
+    setShowScrollButton(isScrolledUp)
+  }
+
+  // Auto-scroll on new items
+  useEffect(() => {
+    if (items.length > 0) {
+      const isMine = items[items.length - 1].senderId === socketId
+      // Scroll if it's my own message, OR if I'm already at the bottom
+      if (isMine || !showScrollButton) {
+        scrollToBottom()
+      }
+    }
+  }, [items, socketId, scrollToBottom]) // Do not include showScrollButton to prevent unneeded triggering
+
   // ─── Derive data ───
   const pinnedItems = items.filter(i => i.pinned)
   const unpinnedItems = items.filter(i => !i.pinned)
@@ -488,7 +513,7 @@ export default function Room() {
       )}
 
       {/* ─── Feed ─── */}
-      <div className="clipboard-feed" ref={feedRef}>
+      <div className="clipboard-feed" ref={feedRef} onScroll={handleFeedScroll}>
         {unpinnedItems.length === 0 && pinnedItems.length === 0 ? (
           <div className="feed-empty">
             <div className="feed-empty-icon">
@@ -513,7 +538,19 @@ export default function Room() {
             />
           ))
         )}
+        <div ref={listEndRef} style={{ height: 1, paddingBottom: '20px' }} />
       </div>
+
+      {/* Floating Scroll to Bottom Button */}
+      {showScrollButton && (
+        <button 
+          className="scroll-bottom-btn" 
+          onClick={scrollToBottom}
+          aria-label="Scroll to bottom"
+        >
+          <ArrowDown size={20} />
+        </button>
+      )}
 
       {/* ─── Send Bar ─── */}
       <div className="send-bar">
