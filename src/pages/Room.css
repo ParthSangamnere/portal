@@ -3,9 +3,12 @@
    ═══════════════════════════════════════ */
 
 .room-page {
-  min-height: 100dvh;
+  height: 100dvh;
+  max-height: 100dvh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  position: relative;
 }
 
 /* ─── Header ─── */
