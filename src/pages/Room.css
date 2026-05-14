@@ -503,6 +503,55 @@
   border-color: var(--accent-2);
 }
 
+.video-play-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 54px;
+  height: 54px;
+  background: rgba(108, 92, 231, 0.8);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  z-index: 2;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  box-shadow: 0 0 20px rgba(108, 92, 231, 0.4);
+}
+
+@media (max-width: 600px) {
+  .room-header {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .room-header-right {
+    gap: 4px;
+  }
+  .room-logo {
+    display: none;
+  }
+  .room-name {
+    font-size: 0.88rem;
+    max-width: 140px;
+  }
+  .device-count-badge {
+    display: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .room-name {
+    font-size: 0.8rem;
+    max-width: 100px;
+  }
+  .room-header-right .btn-icon {
+    padding: 4px;
+  }
+}
+
 /* ─── Pinned Section ─── */
 .pinned-section {
   padding: 8px 20px;

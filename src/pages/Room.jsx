@@ -9,11 +9,11 @@ import {
   Link as LinkIcon, FileText, Lock, Eye, EyeOff,
   Image as ImageIcon, Film, Music, FileArchive, File,
   Code, BookOpen, MoreVertical, X, Clipboard,
-  PinOff, Users, Eraser, ArrowDown, RefreshCw, AlertCircle
+  PinOff, Users, Eraser, ArrowDown, RefreshCw, AlertCircle, Play
 } from 'lucide-react'
 import {
   detectDevice, detectContentType, formatFileSize,
-  formatTime, isImageFile, copyToClipboard, getFileCategory, detectURLs
+  formatTime, isImageFile, isVideoFile, copyToClipboard, getFileCategory, detectURLs
 } from '../utils/helpers'
 import './Room.css'
 
@@ -94,6 +94,54 @@ function ClipboardItem({ item, isMine, socketId, onCopy, onPin, onDelete }) {
     )
   }
 
+  const VideoThumbnail = ({ videoData, fileName }) => {
+    const [thumb, setThumb] = useState(null)
+
+    useEffect(() => {
+      if (!videoData) return
+      
+      const video = document.createElement('video')
+      video.src = videoData
+      video.preload = 'metadata'
+      video.muted = true
+      video.playsInline = true
+      
+      const capture = () => {
+        const canvas = document.createElement('canvas')
+        canvas.width = video.videoWidth
+        canvas.height = video.videoHeight
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+        try {
+          setThumb(canvas.toDataURL('image/jpeg', 0.7))
+        } catch (e) {
+          console.error('Failed to generate thumbnail', e)
+        }
+        video.removeEventListener('seeked', capture)
+        video.src = ""
+        video.load()
+      }
+
+      video.addEventListener('loadedmetadata', () => {
+        video.currentTime = Math.min(video.duration, 1)
+      })
+
+      video.addEventListener('seeked', capture)
+      video.load()
+    }, [videoData])
+
+    if (!thumb) return null
+
+    return (
+      <div className="clip-image-preview" style={{ position: 'relative' }}>
+        <div className="video-play-overlay">
+          <Play size={32} fill="white" />
+        </div>
+        <img src={thumb} alt={fileName} loading="lazy" />
+      </div>
+    )
+  }
+
   const renderContent = () => {
     if (item.type === 'file') {
       const category = getFileCategory(item.fileType)
@@ -129,6 +177,9 @@ function ClipboardItem({ item, isMine, socketId, onCopy, onPin, onDelete }) {
             <div className="clip-image-preview">
               <img src={item.content} alt={item.fileName} loading="lazy" />
             </div>
+          )}
+          {isVideoFile(item.fileType) && item.content && (
+            <VideoThumbnail videoData={item.content} fileName={item.fileName} />
           )}
         </>
       )

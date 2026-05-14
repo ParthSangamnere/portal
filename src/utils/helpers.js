@@ -100,6 +100,11 @@ export function isImageFile(fileType) {
   return fileType && fileType.startsWith('image/');
 }
 
+// ─── Is video file ───
+export function isVideoFile(fileType) {
+  return fileType && fileType.startsWith('video/');
+}
+
 // ─── Copy to clipboard with fallback ───
 export async function copyToClipboard(text) {
   try {
