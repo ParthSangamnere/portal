@@ -65,6 +65,16 @@ Portal is built on a **Shared-State Architecture**.
 2. **The Client** maintains a local "ghost" state for optimistic actions (like uploads) and reconciles it once the server broadcasts the source of truth.
 3. **Storage:** We use **Zero-Persistence** (In-Memory). Files are buffered in RAM and never touch the disk, ensuring maximum privacy and speed.
 
+## 🗺️ Roadmap
+
+- [x] Optimistic File Uploads
+- [x] Video Thumbnail Previews
+- [x] Mobile-First Scroll Locking
+- [ ] End-to-End Encryption (E2EE) for Rooms
+- [ ] QR Code Scanner Integration for Instant Join
+- [ ] Progressive Web App (PWA) Installability
+- [ ] Cloudinary Integration for Persistent Storage (Optional)
+
 ---
 
 ## 🚀 Local Setup
