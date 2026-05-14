@@ -403,10 +403,21 @@ export default function Room() {
 
   // ─── Auto-scroll feed ───
   useEffect(() => {
-    if (feedRef.current) {
-      feedRef.current.scrollTop = feedRef.current.scrollHeight
-    }
-  }, [items])
+    if (!feedRef.current) return
+
+    const observer = new ResizeObserver(() => {
+      const { scrollTop, scrollHeight, clientHeight } = feedRef.current
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 150
+      
+      // If we are already near the bottom, scroll all the way down
+      if (isNearBottom) {
+        feedRef.current.scrollTop = scrollHeight
+      }
+    })
+
+    observer.observe(feedRef.current)
+    return () => observer.disconnect()
+  }, [])
 
   // ─── Drag & drop ───
   useEffect(() => {
