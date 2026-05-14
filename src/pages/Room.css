@@ -451,9 +451,12 @@
   margin-top: 8px;
   border-radius: var(--radius-sm);
   overflow: hidden;
-  max-height: 300px;
+  max-height: 400px;
   display: flex;
+  justify-content: center;
+  align-items: center;
   border: 1px solid var(--border-subtle);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .clip-image-preview img {
