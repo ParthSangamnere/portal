@@ -94,11 +94,13 @@ function ClipboardItem({ item, isMine, socketId, onCopy, onPin, onDelete }) {
     )
   }
 
-  const VideoThumbnail = ({ videoData, fileName }) => {
-    const [thumb, setThumb] = useState(null)
+  const thumbCache = useRef(new Map())
+
+  const VideoThumbnail = ({ videoData, fileName, itemId }) => {
+    const [thumb, setThumb] = useState(thumbCache.current.get(itemId))
 
     useEffect(() => {
-      if (!videoData) return
+      if (thumb || !videoData) return
       
       const video = document.createElement('video')
       video.src = videoData
@@ -113,7 +115,9 @@ function ClipboardItem({ item, isMine, socketId, onCopy, onPin, onDelete }) {
         const ctx = canvas.getContext('2d')
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
         try {
-          setThumb(canvas.toDataURL('image/jpeg', 0.7))
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.6)
+          thumbCache.current.set(itemId, dataUrl)
+          setThumb(dataUrl)
         } catch (e) {
           console.error('Failed to generate thumbnail', e)
         }
@@ -123,17 +127,24 @@ function ClipboardItem({ item, isMine, socketId, onCopy, onPin, onDelete }) {
       }
 
       video.addEventListener('loadedmetadata', () => {
+        // Seek to 1s or middle if shorter
         video.currentTime = Math.min(video.duration, 1)
       })
 
       video.addEventListener('seeked', capture)
       video.load()
-    }, [videoData])
+    }, [videoData, itemId, thumb])
 
-    if (!thumb) return null
+    if (!thumb) {
+      return (
+        <div className="clip-file-icon video" style={{ margin: '10px auto', width: '48px', height: '48px' }}>
+          <Film />
+        </div>
+      )
+    }
 
     return (
-      <div className="clip-image-preview" style={{ position: 'relative' }}>
+      <div className="clip-image-preview" style={{ position: 'relative', animation: 'fadeIn 0.3s ease' }}>
         <div className="video-play-overlay">
           <Play size={32} fill="white" />
         </div>
@@ -179,7 +190,7 @@ function ClipboardItem({ item, isMine, socketId, onCopy, onPin, onDelete }) {
             </div>
           )}
           {isVideoFile(item.fileType) && item.content && (
-            <VideoThumbnail videoData={item.content} fileName={item.fileName} />
+            <VideoThumbnail videoData={item.content} fileName={item.fileName} itemId={item.id} />
           )}
         </>
       )
