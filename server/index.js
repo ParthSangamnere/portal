@@ -14,6 +14,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ─── Health check for UptimeRobot ───
+app.get('/health', (req, res) => res.status(200).send('OK'));
+
 // Serve static files from Vite build in production
 const distPath = path.join(__dirname, '..', 'dist');
 app.use(express.static(distPath));
