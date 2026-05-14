@@ -310,27 +310,6 @@ export default function Room() {
         )
         return [...filtered, item]
       })
-
-      // Notify if from another device
-      if (item.senderId !== socket.id) {
-        toast.success(`📋 Received ${item.type === 'file' ? item.fileName : 'text'} from ${item.senderName}`, {
-          duration: 4000,
-        })
-        // Play subtle sound
-        try {
-          const ctx = new AudioContext()
-          const osc = ctx.createOscillator()
-          const gain = ctx.createGain()
-          osc.connect(gain)
-          gain.connect(ctx.destination)
-          osc.frequency.setValueAtTime(800, ctx.currentTime)
-          osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1)
-          gain.gain.setValueAtTime(0.1, ctx.currentTime)
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3)
-          osc.start(ctx.currentTime)
-          osc.stop(ctx.currentTime + 0.3)
-        } catch { /* no audio */ }
-      }
     })
 
     socket.on('device-joined', ({ device: newDevice, devices: roomDevices }) => {
