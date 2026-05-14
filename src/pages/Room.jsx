@@ -466,7 +466,7 @@ export default function Room() {
     formData.append('file', file);
     formData.append('roomCode', roomCode);
     formData.append('senderId', socketId);
-    formData.append('senderName', 'You'); // Handled by server but useful for early UI
+    formData.append('senderName', detectDevice().name);
     formData.append('senderType', detectDevice().type);
 
     const xhr = new XMLHttpRequest();

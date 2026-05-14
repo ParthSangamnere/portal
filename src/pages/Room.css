@@ -201,13 +201,22 @@
 }
 
 .clip-item.is-mine {
-  margin-left: 24px;
-  border-color: rgba(0, 210, 255, 0.15);
-  background: rgba(0, 210, 255, 0.03);
+  align-self: flex-end;
+  border-color: rgba(108, 92, 231, 0.25);
+  background: rgba(108, 92, 231, 0.08);
+  margin-left: 40px;
 }
 
 .clip-item.is-others {
-  margin-right: 24px;
+  align-self: flex-start;
+  background: var(--bg-glass);
+  border-color: var(--border-subtle);
+  margin-right: 40px;
+}
+
+.clip-item.is-mine .clip-sender {
+  flex-direction: row-reverse;
+  color: var(--accent-2);
 }
 
 .clip-item-header {
