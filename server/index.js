@@ -5,6 +5,7 @@ import cors from 'cors';
 import crypto from 'crypto';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import multer from 'multer';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,6 +22,49 @@ const server = createServer(app);
 const io = new Server(server, {
   cors: { origin: '*' },
   maxHttpBufferSize: 50 * 1024 * 1024, // 50MB max file size
+});
+
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 } // 50MB
+});
+
+// ─── HTTP Routes ───
+app.post('/api/upload', upload.single('file'), (req, res) => {
+  const { roomCode, senderId, senderName, senderType } = req.body;
+  const file = req.file;
+
+  if (!file || !roomCode) {
+    return res.status(400).json({ error: 'Missing file or room code' });
+  }
+
+  const room = rooms.get(roomCode);
+  if (!room) {
+    return res.status(404).json({ error: 'Room not found' });
+  }
+
+  const fullItem = {
+    id: crypto.randomUUID(),
+    type: 'file',
+    fileName: file.originalname,
+    fileSize: file.size,
+    fileType: file.mimetype,
+    content: file.buffer.toString('base64'),
+    senderId,
+    senderName: senderName || 'Unknown',
+    senderType: senderType || 'desktop',
+    timestamp: Date.now(),
+    pinned: false,
+  };
+
+  addItemToRoom(room, fullItem);
+  trackItemShared();
+  
+  // Broadcast to the room
+  io.to(roomCode).emit('new-item', fullItem);
+  
+  console.log(`📁 File uploaded via POST to room "${roomCode}": ${file.originalname}`);
+  res.json({ success: true, item: fullItem });
 });
 
 // ─── Word lists for memorable room codes ───

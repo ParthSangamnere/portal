@@ -9,7 +9,7 @@ import {
   Link as LinkIcon, FileText, Lock, Eye, EyeOff,
   Image as ImageIcon, Film, Music, FileArchive, File,
   Code, BookOpen, MoreVertical, X, Clipboard,
-  PinOff, Users, Eraser, ArrowDown
+  PinOff, Users, Eraser, ArrowDown, RefreshCw, AlertCircle
 } from 'lucide-react'
 import {
   detectDevice, detectContentType, formatFileSize,
@@ -59,6 +59,41 @@ function ClipboardItem({ item, isMine, socketId, onCopy, onPin, onDelete }) {
     toast.success('Download started')
   }
 
+  const ProgressRing = ({ progress, status, onRetry }) => {
+    const radius = 16
+    const circumference = 2 * Math.PI * radius
+    const offset = circumference - (progress / 100) * circumference
+
+    return (
+      <div className="progress-container">
+        {status === 'failed' ? (
+          <button className="retry-btn" onClick={(e) => { e.stopPropagation(); onRetry() }} title="Retry upload">
+            <RefreshCw size={16} />
+          </button>
+        ) : (
+          <div className="progress-ring-wrapper">
+            <svg width="40" height="40">
+              <circle
+                className="progress-ring-bg"
+                cx="20" cy="20" r={radius}
+                stroke="rgba(255, 255, 255, 0.1)" strokeWidth="3" fill="transparent"
+              />
+              <circle
+                className="progress-ring-fill"
+                cx="20" cy="20" r={radius}
+                stroke="var(--accent-2)" strokeWidth="3" fill="transparent"
+                strokeDasharray={circumference}
+                strokeDashoffset={offset}
+                strokeLinecap="round"
+              />
+            </svg>
+            <span className="progress-text">{Math.round(progress)}%</span>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   const renderContent = () => {
     if (item.type === 'file') {
       const category = getFileCategory(item.fileType)
@@ -72,11 +107,23 @@ function ClipboardItem({ item, isMine, socketId, onCopy, onPin, onDelete }) {
             </div>
             <div className="clip-file-info">
               <div className="clip-file-name">{item.fileName}</div>
-              <div className="clip-file-meta">{formatFileSize(item.fileSize)}</div>
+              <div className="clip-file-meta">
+                {formatFileSize(item.fileSize)}
+                {item.status === 'uploading' && <span style={{ marginLeft: '8px', color: 'var(--accent-2)' }}>· Uploading…</span>}
+                {item.status === 'failed' && <span style={{ marginLeft: '8px', color: 'var(--danger)' }}>· Failed</span>}
+              </div>
             </div>
-            <button className="clip-file-download" onClick={handleDownload} title="Download file">
-              <Download />
-            </button>
+            {item.status === 'uploading' || item.status === 'failed' ? (
+              <ProgressRing 
+                progress={item.progress || 0} 
+                status={item.status} 
+                onRetry={() => item.onRetry?.()} 
+              />
+            ) : (
+              <button className="clip-file-download" onClick={handleDownload} title="Download file">
+                <Download />
+              </button>
+            )}
           </div>
           {isImageFile(item.fileType) && item.content && (
             <div className="clip-image-preview">
@@ -147,7 +194,7 @@ function ClipboardItem({ item, isMine, socketId, onCopy, onPin, onDelete }) {
   }
 
   return (
-    <div className={`clip-item ${isMine ? 'is-mine' : 'is-others'} ${item.pinned ? 'pinned' : ''}`}>
+    <div className={`clip-item ${isMine ? 'is-mine' : 'is-others'} ${item.pinned ? 'pinned' : ''} ${item.status === 'uploading' ? 'is-uploading' : ''}`}>
       <div className="clip-item-header">
         <div className="clip-sender">
           <DeviceIcon />
@@ -255,7 +302,15 @@ export default function Room() {
     })
 
     socket.on('new-item', (item) => {
-      setItems(prev => [...prev, item])
+      // If this is a file we just uploaded optimistically, remove the placeholder
+      setItems(prev => {
+        const filtered = prev.filter(i => 
+          !(i.status === 'uploading' && i.fileName === item.fileName && i.fileSize === item.fileSize) &&
+          !(i.status === 'failed' && i.fileName === item.fileName && i.fileSize === item.fileSize)
+        )
+        return [...filtered, item]
+      })
+
       // Notify if from another device
       if (item.senderId !== socket.id) {
         toast.success(`📋 Received ${item.type === 'file' ? item.fileName : 'text'} from ${item.senderName}`, {
@@ -365,6 +420,45 @@ export default function Room() {
   }, [text, sendType, roomCode])
 
   // ─── Send files ───
+  const uploadFile = useCallback((file, tempId) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('roomCode', roomCode);
+    formData.append('senderId', socketId);
+    formData.append('senderName', 'You'); // Handled by server but useful for early UI
+    formData.append('senderType', detectDevice().type);
+
+    const xhr = new XMLHttpRequest();
+    
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        const percent = (e.loaded / e.total) * 100;
+        setItems(prev => prev.map(item => 
+          item.id === tempId ? { ...item, progress: percent } : item
+        ));
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status !== 200) {
+        setItems(prev => prev.map(item => 
+          item.id === tempId ? { ...item, status: 'failed' } : item
+        ));
+        toast.error(`Failed to upload ${file.name}`);
+      }
+    };
+
+    xhr.onerror = () => {
+      setItems(prev => prev.map(item => 
+        item.id === tempId ? { ...item, status: 'failed' } : item
+      ));
+      toast.error(`Error uploading ${file.name}`);
+    };
+
+    xhr.open('POST', '/api/upload');
+    xhr.send(formData);
+  }, [roomCode, socketId]);
+
   const handleFiles = useCallback((files) => {
     if (!socketRef.current || !connected) return
 
@@ -374,21 +468,28 @@ export default function Room() {
         return
       }
 
-      const reader = new FileReader()
-      reader.onload = () => {
-        socketRef.current.emit('send-file', {
-          roomCode,
-          fileData: reader.result,
-          metadata: {
-            name: file.name,
-            size: file.size,
-            type: file.type,
-          },
-        })
-      }
-      reader.readAsDataURL(file)
+      const tempId = crypto.randomUUID();
+      const optimisticItem = {
+        id: tempId,
+        type: 'file',
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        senderId: socketId,
+        senderName: 'You',
+        timestamp: Date.now(),
+        status: 'uploading',
+        progress: 0,
+        onRetry: () => {
+          setItems(prev => prev.map(i => i.id === tempId ? { ...i, status: 'uploading', progress: 0 } : i));
+          uploadFile(file, tempId);
+        }
+      };
+
+      setItems(prev => [...prev, optimisticItem]);
+      uploadFile(file, tempId);
     })
-  }, [roomCode, connected])
+  }, [roomCode, connected, socketId, uploadFile])
 
   // ─── Handlers ───
   const handleKeyDown = (e) => {

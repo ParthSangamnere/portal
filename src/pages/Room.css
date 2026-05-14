@@ -449,6 +449,60 @@
   background: rgba(0, 0, 0, 0.3);
 }
 
+/* ─── Progress UI ─── */
+.progress-container {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.progress-ring-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-ring-fill {
+  transition: stroke-dashoffset 0.3s ease;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+.progress-text {
+  position: absolute;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent-2);
+}
+
+.retry-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 82, 82, 0.15);
+  color: var(--danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.retry-btn:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+.clip-item.is-uploading {
+  opacity: 0.8;
+  border-style: dashed;
+  border-color: var(--accent-2);
+}
+
 /* ─── Pinned Section ─── */
 .pinned-section {
   padding: 8px 20px;
