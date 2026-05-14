@@ -405,14 +405,17 @@ export default function Room() {
   useEffect(() => {
     if (!feedRef.current) return
 
+    let lastHeight = feedRef.current.scrollHeight
     const observer = new ResizeObserver(() => {
       const { scrollTop, scrollHeight, clientHeight } = feedRef.current
-      const isNearBottom = scrollHeight - scrollTop - clientHeight < 150
+      const heightIncreased = scrollHeight > lastHeight
+      // Increased threshold to 200 to be safer
+      const wasAtBottom = lastHeight - scrollTop - clientHeight < 200
       
-      // If we are already near the bottom, scroll all the way down
-      if (isNearBottom) {
+      if (heightIncreased && wasAtBottom) {
         feedRef.current.scrollTop = scrollHeight
       }
+      lastHeight = scrollHeight
     })
 
     observer.observe(feedRef.current)
