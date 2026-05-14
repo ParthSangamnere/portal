@@ -616,14 +616,14 @@ export default function Room() {
     : connecting ? 'Connecting…' : 'Disconnected'
 
   return (
-    <div className="room-page">
+    <main className="room-page">
       {/* ─── Header ─── */}
       <header className="room-header">
         <div className="room-header-left">
-          <button className="room-back-btn" onClick={() => navigate('/')} title="Home">
+          <button className="room-back-btn" onClick={() => navigate('/')} title="Home" aria-label="Home">
             <ArrowLeft size={20} />
           </button>
-          <img src="/portal-icon.svg" className="room-logo" alt="" />
+          <img src="/portal-icon.svg" className="room-logo" alt="Portal Logo" />
           <div className="room-info">
             <div className="room-name">{roomCode}</div>
             <div className="room-status-row">
@@ -633,20 +633,21 @@ export default function Room() {
           </div>
         </div>
         <div className="room-header-right">
-          <div className="device-count-badge">
+          <div className="device-count-badge" aria-label={`${devices.length} devices connected`}>
             <Users size={14} />
             {devices.length}
           </div>
-          <button className="btn-icon" onClick={() => setShowQR(true)} title="Show QR Code">
+          <button className="btn-icon" onClick={() => setShowQR(true)} title="Show QR Code" aria-label="Show QR Code">
             <QrCode size={20} />
           </button>
-          <button className="btn-icon" onClick={handleShare} title="Share Room">
+          <button className="btn-icon" onClick={handleShare} title="Share Room" aria-label="Share Room">
             <Share2 size={20} />
           </button>
           <button
             className="btn-icon"
             onClick={() => setShowClearConfirm(true)}
             title="Clear history"
+            aria-label="Clear history"
           >
             <Eraser size={20} />
           </button>
@@ -664,7 +665,7 @@ export default function Room() {
 
       {/* ─── Pinned Items ─── */}
       {pinnedItems.length > 0 && (
-        <div className="pinned-section">
+        <section className="pinned-section" aria-label="Pinned Items">
           <div className="pinned-label"><Pin size={12} /> Pinned</div>
           <div className="pinned-items">
             {pinnedItems.map(item => (
@@ -679,11 +680,11 @@ export default function Room() {
               />
             ))}
           </div>
-        </div>
+        </section>
       )}
 
       {/* ─── Feed ─── */}
-      <div className="clipboard-feed" ref={feedRef} onScroll={handleFeedScroll}>
+      <section className="clipboard-feed" ref={feedRef} onScroll={handleFeedScroll} aria-label="Message Feed">
         {unpinnedItems.length === 0 && pinnedItems.length === 0 ? (
           <div className="feed-empty">
             <div className="feed-empty-icon">
@@ -709,7 +710,7 @@ export default function Room() {
           ))
         )}
         <div ref={listEndRef} style={{ height: 1, paddingBottom: '20px' }} />
-      </div>
+      </section>
 
       {/* Floating Scroll to Bottom Button */}
       {showScrollButton && (
@@ -723,8 +724,8 @@ export default function Room() {
       )}
 
       {/* ─── Send Bar ─── */}
-      <div className="send-bar">
-        <div className="type-selector">
+      <footer className="send-bar">
+        <nav className="type-selector" aria-label="Message Type Selector">
           {['auto', 'text', 'link', 'password'].map(t => (
             <button
               key={t}
@@ -734,7 +735,7 @@ export default function Room() {
               {t === 'auto' ? '✨ Auto' : t}
             </button>
           ))}
-        </div>
+        </nav>
         <div className="send-bar-inner">
           <div className="send-input-wrapper">
             <textarea
@@ -754,6 +755,7 @@ export default function Room() {
               className="send-attach-btn"
               onClick={() => fileInputRef.current?.click()}
               title="Attach file"
+              aria-label="Attach file"
             >
               <Paperclip />
             </button>
@@ -768,16 +770,17 @@ export default function Room() {
               }}
             />
           </div>
-          <button
-            className="send-btn"
-            onClick={handleSend}
-            disabled={!text.trim() || !connected}
-            title="Send (Enter)"
-          >
-            <Send />
-          </button>
+            <button
+              className="send-btn"
+              onClick={handleSend}
+              disabled={!text.trim() || !connected}
+              title="Send (Enter)"
+              aria-label="Send Message"
+            >
+              <Send />
+            </button>
         </div>
-      </div>
+      </footer>
 
       {/* ─── Drop Overlay ─── */}
       {isDragging && (
@@ -834,6 +837,6 @@ export default function Room() {
           </div>
         </div>
       )}
-    </div>
+    </main>
   )
 }
