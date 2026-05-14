@@ -204,19 +204,24 @@
   align-self: flex-end;
   border-color: rgba(108, 92, 231, 0.25);
   background: rgba(108, 92, 231, 0.08);
-  margin-left: 40px;
+  margin-left: 20px;
+  max-width: 88%;
 }
 
 .clip-item.is-others {
   align-self: flex-start;
   background: var(--bg-glass);
   border-color: var(--border-subtle);
-  margin-right: 40px;
+  margin-right: 20px;
+  max-width: 88%;
 }
 
-.clip-item.is-mine .clip-sender {
-  flex-direction: row-reverse;
-  color: var(--accent-2);
+@media (max-width: 480px) {
+  .clip-item.is-mine, .clip-item.is-others {
+    max-width: 95%;
+    margin-left: 0;
+    margin-right: 0;
+  }
 }
 
 .clip-item-header {
@@ -224,7 +229,7 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 8px;
-  gap: 8px;
+  gap: 12px;
 }
 
 .clip-sender {
@@ -452,9 +457,10 @@
 }
 
 .clip-image-preview img {
-  width: 100%;
-  max-height: 300px;
-  object-fit: contain;
+  max-width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: cover;
   background: rgba(0, 0, 0, 0.3);
 }
 
