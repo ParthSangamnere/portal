@@ -49,7 +49,7 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
     fileName: file.originalname,
     fileSize: file.size,
     fileType: file.mimetype,
-    content: file.buffer.toString('base64'),
+    content: `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
     senderId,
     senderName: senderName || 'Unknown',
     senderType: senderType || 'desktop',
